@@ -1,0 +1,6 @@
+numpy
+scipy
+opencv
+pymaxflow
+PIL
+lear-gist
