@@ -6,7 +6,6 @@ Implementation of 'Scene Completion Using Millions of Photographs'
 
 ### Implementation:
 
-+	KD-tree for nearest neighbors
 +	Search for matched area
 +	Poisson blending
 
@@ -14,4 +13,9 @@ Implementation of 'Scene Completion Using Millions of Photographs'
 
 +   GIST preprocessing
 +   GIST performance
++	KD-tree for nearest neighbors
 +   Graph-Cut algorithm for merging
+
+### ?:
+
++   Non-squared images preprocessing?
