@@ -22,7 +22,7 @@ def info(s, domain=""):
         str(x)), domain if isinstance(domain, list) else [domain]))))
     with open(config.log_path, 'a') as f:
         f.write("[INFO]" + "[{}]".format(str(datetime.now())) + domain_str + s + '\n')
-    print("\033[96m{} \033[00m {}" .format("[ INFO]" + domain_str, s))
+    print("\033[96m{} \033[00m {}" .format("[INFO]" + domain_str, s))
 
 
 def warn(s, domain=""):
@@ -31,4 +31,4 @@ def warn(s, domain=""):
         str(x)), domain if isinstance(domain, list) else [domain]))))
     with open(config.log_path, 'a') as f:
         f.write("[WARN]" + "[{}]".format(str(datetime.now())) + domain_str + s + '\n')
-    print("\033[93m{} \033[00m {}" .format("[ WARN]" + domain_str, s))
+    print("\033[93m{} \033[00m {}" .format("[WARN]" + domain_str, s))
