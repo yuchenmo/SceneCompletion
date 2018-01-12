@@ -34,7 +34,7 @@ def tik():
 def tok(name="(undefined)"):
     info("Time used in {}: {}".format(name, time.time() - time_base), domain=__file__)
 
-kernsize = 35
+kernsize = 400
 A = np.ones((1024, 1024))
 B = np.ones((kernsize, kernsize)) * 5
 

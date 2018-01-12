@@ -1,7 +1,7 @@
 import numpy as np
 import maxflow
 from utils import warn
-
+from IPython import embed
 
 def graphcut(img1, img2, mask):
     """
@@ -26,7 +26,7 @@ def graphcut(img1, img2, mask):
     estimated_nodes = (mask > 0).sum()
     estimated_edges = estimated_nodes * 4
 
-    g = maxflow.Graph[int](estimated_nodes, estimated_edges)
+    g = maxflow.Graph[float](estimated_nodes, estimated_edges)
     nodes = g.add_nodes(estimated_nodes)
     nodemap = {}
     nodemap_inv = {}
@@ -39,6 +39,8 @@ def graphcut(img1, img2, mask):
 
     for y in range(shape[0]):
         for x in range(shape[1]):
+            if mask[y, x] == 0:
+                continue
             if y + 1 < shape[0] and mask[y + 1, x] > 0:
                 value = np.abs(img1[y, x] - img2[y, x]).sum() + \
                     np.abs(img1[y + 1, x] - img2[y + 1, x]).sum()
@@ -47,8 +49,8 @@ def graphcut(img1, img2, mask):
             if x + 1 < shape[1] and mask[y, x + 1] > 0:
                 value = np.abs(img1[y, x] - img2[y, x]).sum() + \
                     np.abs(img1[y, x + 1] - img2[y, x + 1]).sum()
-                g.add_node(nodes[nodemap_inv[(y, x)]],
-                           nodes[nodemap_inv[(y, x + 1)]], value, value)
+                g.add_edge(nodes[nodemap_inv[(y, x)]],
+                        nodes[nodemap_inv[(y, x + 1)]], value, value)
             if mask[y, x] == 1:  # Connected to src
                 g.add_tedge(nodes[nodemap_inv[(y, x)]], np.inf, 0)
             if mask[y, x] == 2:  # Connected to dst
@@ -60,7 +62,7 @@ def graphcut(img1, img2, mask):
     segmap = np.zeros_like(mask)
 
     for i, result in enumerate(segmentation_result):
-        segmap[nodemap_inv[i]] = result
+        segmap[nodemap[i][0], nodemap[i][1]] = result
 
     return segmap, flow
 

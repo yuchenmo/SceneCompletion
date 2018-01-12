@@ -3,6 +3,10 @@ Implementation of 'Scene Completion Using Millions of Photographs'
 
 ## TODO:
 
+### !
+
++   Figure out which parameter is on which image...
+
 ### Test:
 
 +	Search for matched area

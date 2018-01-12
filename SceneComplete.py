@@ -19,7 +19,7 @@ path, feat = dataset['Path'], dataset['Feat']
 
 info("Matching features", domain=__file__)
 tree = scipy.spatial.cKDTree(feat)
-distances, indexes = tree.query(gist, k=200, eps=1e-8, p=2)  # Score part 1
+distances, indexes = tree.query(gist, k=2, eps=1e-8, p=2)  # Score part 1
 indexes = np.array(indexes).astype('int32')
 
 candidates = []
@@ -45,13 +45,17 @@ info("Selecting matching position", domain=__file__)
 # Score part 2
 match_info = matchall(img, candidates, (mask > 0))
 match_cost = list(map(lambda x: x[0], match_info))
-
+np.savez("Matchinfo.npz", Data=match_info)
 info("Calculating boundary", domain=__file__)
 
 maxflow = []   # Score part 3
 for i, candidate in enumerate(candidates):
     img1grad, img2grad = cv2.Sobel(
-        img, -1, 1, 1), cv2.Sobel(candidates, -1, 1, 1)
+        img, -1, 1, 1), cv2.Sobel(candidate, -1, 1, 1)
+    scale, offset_y, offset_x = match_info[i][1], match_info[i][2], match_info[i][3]
+    img2grad = cv2.resize(img2grad, (0, 0), fx=scale, fy=scale)
+    img2grad = img2grad[offset_y: offset_y + mask.shape[0], offset_x: offset_x + mask.shape[1]]
+    # embed()
     segmap, cost = graphcut(img1grad, img2grad, mask)
     maxflow.append(cost)
 
@@ -59,11 +63,21 @@ final_score = np.array(distances) + np.array(match_cost) + np.array(maxflow)
 winners = final_score.argsort()[:20]
 
 ensure_dir("./results", renew=True)
+show_img = img.copy().astype('float32')
+show_img[mask > 0] *= 0.5
+show_img = show_img.astype('uint8')
+cv2.imwrite("original.png", show_img)
 for i in winners:
     candidate = candidates[i]
-    candidate_info = match_info[i]
-    candidate = cv2.resize(candidate, 0, fx=candidate_info[1], fy=candidate_info[1])
-    mixture = cv2.seamlessClone(candidate, img, (mask > 0), (candidate_info[2], candidate_info[3]), cv2.MIXED_CLONE)
+    scale, offset_y, offset_x, cent_y, cent_x = match_info[i][1], match_info[i][2], match_info[i][3], match_info[i][4], match_info[i][5]
+    candidate = cv2.resize(candidate, (0, 0), fx=scale, fy=scale)
+    candidate = candidate[offset_y: offset_y + mask.shape[0], offset_x: offset_x + mask.shape[1]]
+    embed()
+    cv2.circle(show_img, (cent_x, cent_y), 3, (0, 255, 0), 1)
+    cv2.rectangle(show_img, (offset_x, offset_y), (offset_x + mask.shape[1], offset_y + mask.shape[0]), (0, 0, 255), 2)
+    cv2.imwrite("original1.png", show_img)
+
+    mixture = cv2.seamlessClone(candidate, img, (mask > 0).astype('uint8'), (cent_y, cent_x), cv2.MIXED_CLONE)
     cv2.imwrite("./results/{}.png".format(i), mixture)
 
 info("Completed!", domain=__file__)
