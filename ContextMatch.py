@@ -59,7 +59,6 @@ def match(img1, img2, mask, show):
     roi, roimask = img1[y1: y2, x1: x2], mask[y1: y2, x1: x2]
     roimask3d = np.expand_dims(roimask, axis=2)
     roimask3d = np.concatenate([roimask3d, roimask3d, roimask3d], axis=2)
-
     def cost(error1_map, error2_map, offset_y, offset_x, scale):
         # error1 = A2C_sum[offset_y, offset_x] + B2C_sum[0] - 2 * ABC_sum[offset_y, offset_x]
         # error1 = (((_roi - _img2[offset_y: offset_y + _roi.shape[0], offset_x: offset_x + _roi.shape[1]]) * roimask) ** 2).sum()
@@ -140,7 +139,7 @@ def match(img1, img2, mask, show):
                 c = cost(error1_map, error2_map, y, x, scales[i])
                 if c < best_cost:
                     best_cost = c
-                    best_params = (best_cost, scales[i], int(y // scaling), int(x // scaling), int((y1 + y2) // 2 // scaling), int((x1 + x2) // 2 // scaling)) 
+                    best_params = (best_cost, scales[i], int(y // scaling), int(x // scaling), int(y1 // scaling), int(x1 // scaling), int(img_kernsize // scaling))
     return best_params
 
 

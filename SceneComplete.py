@@ -41,6 +41,9 @@ mask[rawmask > 0] = 0
 mask[np.bitwise_and(mask_boundary2 > 0, rawmask == 0)] = 2
 mask[np.bitwise_and(mask > 0, dilated_mask == 0)] = 1
 
+fullmask = rawmask.copy()
+fullmask[mask > 0] = 1
+
 info("Selecting matching position", domain=__file__)
 # Score part 2
 match_info = matchall(img, candidates, (mask > 0))
@@ -69,15 +72,16 @@ show_img = show_img.astype('uint8')
 cv2.imwrite("original.png", show_img)
 for i in winners:
     candidate = candidates[i]
-    scale, offset_y, offset_x, cent_y, cent_x = match_info[i][1], match_info[i][2], match_info[i][3], match_info[i][4], match_info[i][5]
+    scale, offset_y, offset_x, y1, x1, roilen = match_info[i][1], match_info[i][2], match_info[i][3], match_info[i][4], match_info[i][5], match_info[i][6]
     candidate = cv2.resize(candidate, (0, 0), fx=scale, fy=scale)
-    candidate = candidate[offset_y: offset_y + mask.shape[0], offset_x: offset_x + mask.shape[1]]
-    embed()
-    cv2.circle(show_img, (cent_x, cent_y), 3, (0, 255, 0), 1)
-    cv2.rectangle(show_img, (offset_x, offset_y), (offset_x + mask.shape[1], offset_y + mask.shape[0]), (0, 0, 255), 2)
-    cv2.imwrite("original1.png", show_img)
+    candidate = candidate[offset_y: offset_y + roilen, offset_x: offset_x + roilen]
+    candidate_mask = fullmask[y1: y1 + roilen, x1: x1 + roilen]
+    # candidate_mask = cv2.erode(candidate_mask, np.ones((3, 3)), iterations=)
 
-    mixture = cv2.seamlessClone(candidate, img, (mask > 0).astype('uint8'), (cent_y, cent_x), cv2.MIXED_CLONE)
+    cv2.circle(show_img, (int(y1 + roilen / 2), int(x1 + roilen / 2)), 3, (0, 255, 0), 1)
+    cv2.rectangle(show_img, (x1, y1), (x1 + roilen, y1 + roilen), (0, 0, 255), 2)
+    cv2.imwrite("original1.png", show_img)
+    mixture = cv2.seamlessClone(candidate, img, (candidate_mask > 0).astype('uint8') * 255, (int(x1 + roilen / 2), int(y1 + roilen / 2)), cv2.NORMAL_CLONE)
     cv2.imwrite("./results/{}.png".format(i), mixture)
 
 info("Completed!", domain=__file__)

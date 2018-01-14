@@ -2,10 +2,10 @@ dataset
 siggraph_user_study
 spider
 .DS_Store
-.npz
-.jpg
-.bmp
-.png
+*.npz
+*.jpg
+*.bmp
+*.png
 log.txt
 *.so
 
