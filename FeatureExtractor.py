@@ -2,7 +2,6 @@ import numpy as np
 from scipy.signal import medfilt
 import cv2
 import os.path as op
-from PIL import Image
 from skimage import transform
 
 """
@@ -10,13 +9,14 @@ The image had better be squared... And width and height can both be divided by 4
 """
 
 import gist
+from IPython import embed
 def get_gist_C_implementation(img, mask=None):
     """
     Extract GIST descriptor of an image. Implemented by C.
     This implementation cannot change orientation and filter num, but it's really faster than MATLAB.
     """
-    _img = transform.resize(img, (1024, 1024), preserve_range=True).astype('uint8')
-    _mask = transform.resize(img, (1024, 1024), preserve_range=True).astype('uint8')
+    _img = transform.resize(img, (224, 224), preserve_range=True).astype('uint8')
+    _mask = transform.resize(mask, (224, 224), preserve_range=True).astype('uint8')
     if mask is None:
         return gist.extract(_img)
 
@@ -28,8 +28,7 @@ def get_gist_C_implementation(img, mask=None):
     unity, unitx = mask.shape[0] // 4, mask.shape[1] // 4
     for _y in range(4):
         for _x in range(4):
-            weight[_y, _x] = np.sum(mask[_y * unity: (_y + 1) * unity, _x * unitx: (_x + 1) * unitx] > 0) / (unity * unitx)
-
+            weight[_y, _x] = np.sum(mask[_y * unity: (_y + 1) * unity, _x * unitx: (_x + 1) * unitx] == 0) / (unity * unitx)
     for c in range(3):
         for i in range(30):
             descriptor[c, i] *= weight

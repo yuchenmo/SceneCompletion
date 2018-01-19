@@ -22,7 +22,7 @@ for (root, dirs, files) in os.walk(input_dir):
 
 info("Extracting GIST descriptor", domain=__file__)
 
-processnum = 16
+processnum = 6
 unit = len(catalog) // processnum + 1
 def getfeat(start, end, use_tqdm=False):
     subpaths, subfeats = [], []
@@ -49,13 +49,6 @@ for pid in tqdm(range(processnum - 1)):
     paths += subpath
     feats += subfeat
 
-"""
-for i in tqdm(catalog):
-    img = cv2.imread(catalog[i]['path'])
-    vec = get_gist_C_implementation(img)
-    paths.append(catalog[i]['path'])
-    feats.append(vec)
-"""
 np.savez("./dataset/feature.npz", Path=paths, Feat=feats)
 info("Preprocess completed! {} images loaded into dataset".format(len(paths)), domain=__file__)
 

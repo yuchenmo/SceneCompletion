@@ -63,7 +63,6 @@ def match(img1, img2, mask, show):
         # error1 = A2C_sum[offset_y, offset_x] + B2C_sum[0] - 2 * ABC_sum[offset_y, offset_x]
         # error1 = (((_roi - _img2[offset_y: offset_y + _roi.shape[0], offset_x: offset_x + _roi.shape[1]]) * roimask) ** 2).sum()
         error1 = error1_map[offset_y, offset_x]
-        # TODO: Beffer function f(x) from (0, inf) to (1, inf) with low f'(x)
         error1 *= ((offset_y / scale - y1) ** 2 +
                    (offset_x / scale - x1) ** 2) + 1
         error2 = error2_map[offset_y, offset_x]
@@ -72,13 +71,11 @@ def match(img1, img2, mask, show):
     best_cost = np.inf
     best_params = None
 
-    # TODO: Time complexity
     _roi = get_lab(roi)
     grad1 = cv2.Sobel(roi, -1, 1, 1)
     if show:
         info("Applying median filter", domain=__file__)
     text1 = get_texture(grad1)
-    # print("Cost num = {}".format(3 * (img2.shape[0] - roi.shape[0]) * (img2.shape[1] - roi.shape[1])))
 
     if img_kernsize <= 35:
         B, C = roi, roimask
@@ -88,7 +85,6 @@ def match(img1, img2, mask, show):
         BC = B * C_3d
         B2C = B2 * C
         kern = np.ones_like(C)
-        # embed()
 
         if show:
             info("Convolving B2C", domain=__file__)
@@ -100,9 +96,14 @@ def match(img1, img2, mask, show):
     for i in range(3):
         info("Scale {}".format(i))
         _img2 = get_lab(imgs[i])
+        if _img2.shape[0] <= roi.shape[0] or _img2.shape[1] <= roi.shape[1]:
+            continue
         grad2 = cv2.Sobel(imgs[i], -1, 1, 1)
         text2 = get_texture(grad2)
         
+        """
+        If kernel size > 35 then conv method will be slower than bruteforce...
+        """
         if img_kernsize <= 35:
             A = _img2
             A2 = (A ** 2).sum(axis=2)
@@ -118,7 +119,6 @@ def match(img1, img2, mask, show):
             E = text2
             E2 = (E ** 2).sum(axis=2)
 
-            # kern is the same size as roi, B and D
             D2_sum = convolve2d(D2, kern, mode='valid')
             E2_sum = convolve2d(E2, kern, mode='valid')
             if show:
@@ -135,11 +135,14 @@ def match(img1, img2, mask, show):
                     error2_map[y, x] = ((text1 - text2[y: y + roi.shape[0], x: x + roi.shape[0]]) ** 2).sum()
         for y in range(_img2.shape[0] - roi.shape[0]):
             for x in range(_img2.shape[1] - roi.shape[1]):
-                # print("Scale {}, y = {}, x = {}".format(i, y, x))
                 c = cost(error1_map, error2_map, y, x, scales[i])
                 if c < best_cost:
                     best_cost = c
-                    best_params = (best_cost, scales[i], int(y // scaling), int(x // scaling), int(y1 // scaling), int(x1 // scaling), int(img_kernsize // scaling))
+
+                    best_params = (best_cost, scales[i], int((y1 - y) // scaling), int((x1 - x) // scaling), 
+                                   int(y1 // scaling), int(x1 // scaling), int(y2 // scaling), int(x2 // scaling))
+                    # best_params = (best_cost, scales[i], int(y // scaling), int(x // scaling), int(y1 // scaling), int(x1 // scaling), int(img_kernsize // scaling), 
+                                   # int(y1 // scaling), int(x1 // scaling), int(y2 // scaling), int(x2 // scaling))
     return best_params
 
 

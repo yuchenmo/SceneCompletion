@@ -37,6 +37,8 @@ def graphcut(img1, img2, mask):
                 nodemap[len(nodemap)] = (y, x)
                 nodemap_inv[(y, x)] = len(nodemap_inv)
 
+
+    inf = 1e9
     for y in range(shape[0]):
         for x in range(shape[1]):
             if mask[y, x] == 0:
@@ -52,18 +54,15 @@ def graphcut(img1, img2, mask):
                 g.add_edge(nodes[nodemap_inv[(y, x)]],
                         nodes[nodemap_inv[(y, x + 1)]], value, value)
             if mask[y, x] == 1:  # Connected to src
-                g.add_tedge(nodes[nodemap_inv[(y, x)]], np.inf, 0)
+                g.add_tedge(nodes[nodemap_inv[(y, x)]], inf, 0)
             if mask[y, x] == 2:  # Connected to dst
-                g.add_tedge(nodes[nodemap_inv[(y, x)]], 0, np.inf)
+                g.add_tedge(nodes[nodemap_inv[(y, x)]], 0, inf)
 
     flow = g.maxflow()
-    # PyMaxflow: 1 if node is segmented with src node else 0
-    segmentation_result = 2 - np.array(list(map(g.get_segment, nodes)))
+    segmentation_result = 1 + np.array(list(map(g.get_segment, nodes)))
     segmap = np.zeros_like(mask)
-
     for i, result in enumerate(segmentation_result):
         segmap[nodemap[i][0], nodemap[i][1]] = result
-
     return segmap, flow
 
 

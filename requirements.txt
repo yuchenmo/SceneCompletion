@@ -1,6 +1,8 @@
 numpy
 scipy
 opencv
+skimage
+tqdm
 pymaxflow
 PIL
 lear-gist
